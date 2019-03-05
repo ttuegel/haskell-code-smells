@@ -1,4 +1,4 @@
-# Code Smell: Boolean Blindness
+# Code smell: Boolean blindness
 
 `Bool` represents a single bit of information:
 
@@ -131,3 +131,24 @@ originalFilter predicate = filter (keeping predicate)
 ~~~
 
 The generalized `filter` encourages to build a reusable components like `keeping`.
+
+## Post script: How far is too far?
+
+It might be tempting to carry on generalizing.
+Instead of allowing zero or one output elements per input, we might allow any number of outputs:
+
+~~~ haskell
+generalFilter :: (a -> [b]) -> [a] -> [b]
+generalFilter _    []       = []
+generalFilter keep (a : as) = keep a ++ filter keep as
+~~~
+
+This function is probably too general to be useful as a generalization of `filter`:
+by allowing any number of outputs, we allow so many transformations that it makes the intent unclear.
+This generalization does appear, though, as the `Monad` instance of lists:
+
+~~~ haskell
+flip (>>=) :: (a -> [b]) -> [a] -> [b]
+~~~
+
+In the context of `filter`, we may have gone too far, but in another context this might be exactly the abstraction we need.
