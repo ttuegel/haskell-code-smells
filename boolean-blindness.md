@@ -1,6 +1,6 @@
 # Code smell: Boolean blindness
 
-`Bool` represents a single bit of information:
+[`Bool`][Bool] represents a single bit of information:
 
 ~~~ haskell
 data Bool = False | True
@@ -9,7 +9,7 @@ data Bool = False | True
 The popular term "boolean blindness" refers to the information lost by functions that operate on `Bool` when richer structures are available.
 Using more structure can produce interfaces that are easier to document, use, decompose, and generalize.
 
-`Data.List.filter` is a classic example of a function that would benefit from a richer interface type:
+[`Data.List.filter`][Data.List.filter] is a classic example of a function that would benefit from a richer interface type:
 
 ~~~ haskell
 filter :: (a -> Bool) -> [a] -> [a]
@@ -22,7 +22,7 @@ A "filter" has two uses:
 1. To collect the particulate and discard the filtrate, such as when collecting gold.
 
 Just as there are two uses for a filter, I can never remember if `filter`'s predicate means "keep" or "discard".
-For the record, the `Prelude` definition is:
+For the record, the [`Prelude`][Prelude] definition is:
 
 ~~~ haskell
 filter _    []       = []
@@ -117,7 +117,7 @@ filter keep (a : as)
 ~~~
 
 and enjoy all the convenient functions that the standard library defines for `Maybe`.
-This definition already exists as `Data.Maybe.mapMaybe`—it is unfortunately not in the `Prelude`!
+This definition already exists as [`Data.Maybe.mapMaybe`][Data.Maybe.mapMaybe]—it is unfortunately not in the `Prelude`!
 This generalized definition can implement the original `filter` with a little help:
 
 ~~~ haskell
@@ -145,10 +145,16 @@ generalFilter keep (a : as) = keep a ++ filter keep as
 
 This function is probably too general to be useful as a generalization of `filter`:
 by allowing any number of outputs, we allow so many transformations that it makes the intent unclear.
-This generalization does appear, though, as the `Monad` instance of lists:
+This generalization does appear, though, as the [`Monad`][Monad] instance of lists:
 
 ~~~ haskell
 flip (>>=) :: (a -> [b]) -> [a] -> [b]
 ~~~
 
 In the context of `filter`, we may have gone too far, but in another context this might be exactly the abstraction we need.
+
+[Bool]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Prelude.html#t:Bool
+[Data.List.filter]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Data-List.html#v:filter
+[Prelude]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Prelude.html
+[Data.Maybe.mapMaybe]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Maybe.html#v:mapMaybe
+[Monad]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html#t:Monad
