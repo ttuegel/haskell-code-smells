@@ -1,3 +1,6 @@
+% Code smell: Boolean blindness
+% Thomas Tuegel
+
 # Code smell: Boolean blindness
 
 [`Bool`][Bool] represents a single bit of information:
