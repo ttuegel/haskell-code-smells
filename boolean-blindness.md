@@ -53,7 +53,7 @@ select :: (a -> Bool) -> [a] -> [a]
 --         predicate: select each element
 ~~~
 
-Another alternative is to supply more information in the type:
+An alternative is to supply more information in the type:
 
 ~~~ haskell
 data Keep = Discard | Keep
