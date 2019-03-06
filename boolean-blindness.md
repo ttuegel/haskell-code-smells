@@ -7,6 +7,7 @@ data Bool = False | True
 ```
 
 The popular term "boolean blindness" refers to the information lost by functions that operate on `Bool` when richer structures are available.
+Erasing such structure can give code a _bad smell_.
 Using more structure can produce interfaces that are easier to document, use, decompose, and generalize.
 
 ## Example
