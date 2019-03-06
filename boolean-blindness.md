@@ -69,9 +69,9 @@ This popular style has a practical disadvantage:
 there are already many functions that work with `Bool`,
 but none will work with `Keep` unless we reimplement them ourselves.
 
-Including more information in the type of `filter` can make the definition more general while expressing our intent more clearly in the code.
+Including more structure in the type of `filter` can make the definition more general while expressing our intent more clearly in the code.
 The most important feature of `filter` is that each element of the input list corresponds to zero (`Discard`) or one (`Keep`) elements of the output.
-There is already a type which represents zero or one elements,
+There is already a type which _structurally_ represents zero or one elements,
 
 ~~~ haskell
 data Maybe a = Nothing | Just a
