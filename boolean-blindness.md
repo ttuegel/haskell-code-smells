@@ -9,6 +9,8 @@ data Bool = False | True
 The popular term "boolean blindness" refers to the information lost by functions that operate on `Bool` when richer structures are available.
 Using more structure can produce interfaces that are easier to document, use, decompose, and generalize.
 
+## Example
+
 [`Data.List.filter`][Data.List.filter] is a classic example of a function that would benefit from a richer interface type:
 
 ~~~ haskell
@@ -45,6 +47,8 @@ filter' discard (a : as)
 
 `filter` and `filter'` are both perfectly fine functions, only their intent differs slightly.
 
+## Expressive renaming
+
 One (ahem) solution to clarify intent is to give `filter` a better name, one that does not have a dual identity:
 
 ~~~ haskell
@@ -53,7 +57,7 @@ select :: (a -> Bool) -> [a] -> [a]
 --         predicate: select each element
 ~~~
 
-An alternative is to supply more information in the type:
+An alternative is to supply rename the type and constructors expressively,
 
 ~~~ haskell
 data Keep = Discard | Keep
@@ -68,6 +72,8 @@ filter1 keep (a : as)
 This popular style has a practical disadvantage:
 there are already many functions that work with `Bool`,
 but none will work with `Keep` unless we reimplement them ourselves.
+
+## Expressive structure
 
 Including more structure in the type of `filter` can make the definition more general while expressing our intent more clearly in the code.
 The most important feature of `filter` is that each element of the input list corresponds to zero (`Discard`) or one (`Keep`) elements of the output.
@@ -121,6 +127,8 @@ Note that we did not have to change the implementation because it was already co
 We only needed to change the type to reflect our intent for the correct implementation.
 Changing the type made the implementation still more general:
 the predicate may now even transform the elements to a different type while filtering the list.
+
+## Generalization, composition, and decomposition
 
 `filter3` already exists as [`Data.Maybe.mapMaybe`][Data.Maybe.mapMaybe]—it is unfortunately not in the `Prelude`!
 The generalized definition can implement the original `filter` with a little help:
