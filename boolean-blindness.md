@@ -124,7 +124,7 @@ filter3 keep (a : as)
 
 The type of `filter3` ensures that its implementation only collects outputs from the predicate, because that is the only thing in scope which can produce a value of `b`.
 Note that we did not have to change the implementation because it was already correct!
-We only needed to change the type to reflect our intent for the correct implementation.
+We only needed to change the type to express our intent more clearly.
 Changing the type made the implementation still more general:
 the predicate may now even transform the elements to a different type while filtering the list.
 
