@@ -2,7 +2,7 @@
 
 [`Bool`][Bool] represents a single bit of information:
 
-~~~ haskell
+~~~ haskell ignore
 data Bool = False | True
 ~~~
 
@@ -13,7 +13,7 @@ Using more structure can produce interfaces that are easier to document, use, de
 
 [`Data.List.filter`][Data.List.filter] is a classic example of a function that would benefit from a richer interface type:
 
-~~~ haskell
+~~~ haskell ignore
 filter :: (a -> Bool) -> [a] -> [a]
 --         ^^^^^^^^^
 --         predicate: keep or discard each element
@@ -27,7 +27,7 @@ A "filter" has two uses:
 Just as there are two uses for a filter, I can never remember if `filter`'s predicate means "keep" or "discard".
 For the record, the [`Prelude`][Prelude] definition is:
 
-~~~ haskell
+~~~ haskell ignore
 filter _    []       = []
 filter keep (a : as)
   | keep a           = a : filter keep as
@@ -37,12 +37,12 @@ filter keep (a : as)
 ... I think.
 If I had the _other_ use of "filter" in mind when I wrote the function, I might have written instead,
 
-~~~ haskell
+~~~ haskell ignore
 filter' :: (a -> Bool) -> [a] -> [a]
 filter' _       []       = []
 filter' discard (a : as)
-  | discard a            =     filter keep as
-  | otherwise            = a : filter keep as
+  | discard a            =     filter' keep as
+  | otherwise            = a : filter' keep as
 ~~~
 
 `filter` and `filter'` are both perfectly fine functions, only their intent differs slightly.
@@ -55,6 +55,10 @@ One (ahem) solution to clarify intent is to give `filter` a better name, one tha
 select :: (a -> Bool) -> [a] -> [a]
 --         ^^^^^^^^^
 --         predicate: select each element
+select _    []       = []
+select keep (a : as)
+  | keep a           = a : select keep as
+  | otherwise        =     select keep as
 ~~~
 
 An alternative is to supply rename the type and constructors expressively,
@@ -65,8 +69,8 @@ data Keep = Discard | Keep
 filter1 :: (a -> Keep) -> [a] -> [a]
 filter1 _    []       = []
 filter1 keep (a : as)
-  | Keep <- keep a    = a : filter keep as
-  | otherwise         =     filter keep as
+  | Keep <- keep a    = a : filter1 keep as
+  | otherwise         =     filter1 keep as
 ~~~
 
 This popular style has a practical disadvantage:
@@ -79,7 +83,7 @@ Including more structure in the type of `filter` can make the definition more ge
 The most important feature of `filter` is that each element of the input list corresponds to zero (`Discard`) or one (`Keep`) elements of the output.
 There is already a type which _structurally_ represents zero or one elements,
 
-~~~ haskell
+~~~ haskell ignore
 data Maybe a = Nothing | Just a
 ~~~
 
@@ -89,8 +93,8 @@ We can use `Maybe` to express the intent that each input element yields zero or 
 filter2 :: (a -> Maybe a) -> [a] -> [a]
 filter2 _    []         = []
 filter2 keep (a : as)
-  | Just b <- keep a    = b : filter keep as
-  | otherwise           =     filter keep as
+  | Just b <- keep a    = b : filter2 keep as
+  | otherwise           =     filter2 keep as
 ~~~
 
 `filter2` is a generalization of `filter` because we might transform the list as we filter it:
@@ -108,8 +112,8 @@ Consider the following implementation with the same type, which has a subtle bug
 filter2' :: (a -> Maybe a) -> [a] -> [a]
 filter2' _    []         = []
 filter2' keep (a : as)
-  | Just b <- keep a     = a : filter keep as
-  | otherwise            =     filter keep as
+  | Just b <- keep a     = a : filter2' keep as
+  | otherwise            =     filter2' keep as
 ~~~
 
 We can use parametric polymorphism to express our intent faithfully in the code,
@@ -118,8 +122,8 @@ We can use parametric polymorphism to express our intent faithfully in the code,
 filter3 :: (a -> Maybe b) -> [a] -> [b]
 filter3 _    []         = []
 filter3 keep (a : as)
-  | Just b <- keep a    = b : filter keep as
-  | otherwise           =     filter keep as
+  | Just b <- keep a    = b : filter3 keep as
+  | otherwise           =     filter3 keep as
 ~~~
 
 The type of `filter3` ensures that its implementation only collects outputs from the predicate, because that is the only thing in scope which can produce a value of `b`.
@@ -154,14 +158,14 @@ Instead of allowing zero or one output elements per input, we might allow any nu
 ~~~ haskell
 filter4 :: (a -> [b]) -> [a] -> [b]
 filter4 _    []       = []
-filter4 keep (a : as) = keep a ++ filter keep as
+filter4 keep (a : as) = keep a ++ filter4 keep as
 ~~~
 
 This function is probably too general to be useful as a generalization of `filter`:
 by allowing any number of outputs, we allow so many transformations that it makes the intent unclear.
 This generalization does appear, though, in the [`Monad`][Monad] instance of lists:
 
-~~~ haskell
+~~~ haskell ignore
 flip (>>=) :: (a -> [b]) -> [a] -> [b]
 -- flip (>>=) === filter4
 ~~~
