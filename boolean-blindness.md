@@ -13,7 +13,8 @@ Using more structure can produce interfaces that are easier to document, use, de
 
 ~~~ haskell
 filter :: (a -> Bool) -> [a] -> [a]
---         ^~~~~~~~~ predicate: keep or discard each element
+--         ^^^^^^^^^
+--         predicate: keep or discard each element
 ~~~
 
 A "filter" has two uses:
@@ -27,17 +28,29 @@ For the record, the [`Prelude`][Prelude] definition is:
 ~~~ haskell
 filter _    []       = []
 filter keep (a : as)
-    | keep a         = a : filter keep as
-    | otherwise      =     filter keep as
+  | keep a           = a : filter keep as
+  | otherwise        =     filter keep as
 ~~~
 
 ... I think.
+If I had the _other_ use of "filter" in mind when I wrote the function, I might have written instead,
 
-One (ahem) solution is to give `filter` a better name, one that does not have a dual identity:
+~~~ haskell
+filter' :: (a -> Bool) -> [a] -> [a]
+filter' _       []       = []
+filter' discard (a : as)
+  | discard a            =     filter keep as
+  | otherwise            = a : filter keep as
+~~~
+
+`filter` and `filter'` are both perfectly fine functions, only their intent differs slightly.
+
+One (ahem) solution to clarify intent is to give `filter` a better name, one that does not have a dual identity:
 
 ~~~ haskell
 select :: (a -> Bool) -> [a] -> [a]
---         ^~~~~~~~~ predicate: select each element
+--         ^^^^^^^^^
+--         predicate: select each element
 ~~~
 
 Another alternative is to supply more information in the type:
@@ -45,27 +58,16 @@ Another alternative is to supply more information in the type:
 ~~~ haskell
 data Keep = Discard | Keep
 
-filter :: (a -> Keep) -> [a] -> [a]
-filter _    []       = []
-filter keep (a : as)
-    | Keep <- keep a = a : filter keep as
-    | otherwise      =     filter keep as
+filter1 :: (a -> Keep) -> [a] -> [a]
+filter1 _    []       = []
+filter1 keep (a : as)
+  | Keep <- keep a    = a : filter keep as
+  | otherwise         =     filter keep as
 ~~~
 
-Although it informs the programmer, `Keep` contains no more information than `Bool` from the machine's perspective.
-The compiler will happily allow this definition, which does not do what you would expect:
-
-~~~ haskell
-evilFilter :: (a -> Keep) -> [a] -> [a]
-evilFilter _    []       = []
-evilFilter keep (a : as)
-    | Discard <- keep a  = a : filter keep as
-    | otherwise          =     filter keep as
-~~~
-
-`evilFilter` isn't a likely failure mode, unless you have a very antagonistic relationship with your team.
-On the practical side, this popular style does have a significant disadvantage:
-none of the convenient definitions for `Bool` will work for `Keep` unless we reimplement them ourselves.
+This popular style does have a practical disadvantage:
+there are already many functions that work with `Bool`,
+but none will work with `Keep` unless we reimplement them ourselves.
 
 Including more information in the type of `filter` can make the definition more general and even enlist the compiler's aid.
 The most important feature of `filter` is that each element of the input list corresponds to zero (`Discard`) or one (`Keep`) elements of the output.
