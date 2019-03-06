@@ -41,12 +41,12 @@ filter keep (a : as)
 ... I think.
 If I had the _other_ use of "filter" in mind when I wrote the function, I might have written instead,
 
-``` {#filter-prime .haskell .ignore}
+``` {#filter-prime .haskell}
 filter' :: (a -> Bool) -> [a] -> [a]
 filter' _       []       = []
 filter' discard (a : as)
-  | discard a            =     filter' keep as
-  | otherwise            = a : filter' keep as
+  | discard a            =     filter' discard as
+  | otherwise            = a : filter' discard as
 ```
 
 `filter` and `filter'` are both perfectly fine functions, only their intent differs slightly.
@@ -147,8 +147,8 @@ keeping predicate a
   | predicate a = Just a
   | otherwise   = Nothing
 
-filter' :: (a -> Bool) -> [a] -> [a]
-filter' predicate = filter3 (keeping predicate)
+filter'' :: (a -> Bool) -> [a] -> [a]
+filter'' predicate = filter3 (keeping predicate)
 ```
 
 The generalized `filter` encourages to build a reusable components like `keeping`,
