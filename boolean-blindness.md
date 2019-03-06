@@ -69,70 +69,74 @@ This popular style does have a practical disadvantage:
 there are already many functions that work with `Bool`,
 but none will work with `Keep` unless we reimplement them ourselves.
 
-Including more information in the type of `filter` can make the definition more general and even enlist the compiler's aid.
+Including more information in the type of `filter` can make the definition more general while expressing our intent more clearly in the code.
 The most important feature of `filter` is that each element of the input list corresponds to zero (`Discard`) or one (`Keep`) elements of the output.
-We can encode that intent in `Keep` by giving it a type parameter,
+There is already a type which represents zero or one elements,
 
 ~~~ haskell
-data Keep a = Discard | Keep a
+data Maybe a = Nothing | Just a
 ~~~
 
-and attaching zero or one elements of the input to the result of the predicate:
+We can use `Maybe` to express the intent that each input element yields zero or one output elements:
 
 ~~~ haskell
-filter :: (a -> Keep a) -> [a] -> [a]
-filter keep (a : as)
-    | Keep b <- keep a = b : filter keep as
-    | otherwise        =     filter keep as
+filter2 :: (a -> Maybe a) -> [a] -> [a]
+filter2 _    []         = []
+filter2 keep (a : as)
+  | Just b <- keep a    = b : filter keep as
+  | otherwise           =     filter keep as
 ~~~
 
-Although this type is highly suggestive to the programmer, it still allows pathological implementations:
+`filter2` is a generalization of `filter` because we might transform the list as we filter it:
 
 ~~~ haskell
-evilFilter :: (a -> Keep a) -> [a] -> [a]
-evilFilter _ as = as  -- Signed-off-by: Your Adversarial Coworker :-P
+-- | Select only the positive elements and decrement them.
+decrementPositive :: [Integer] -> [Integer]
+decrementPositive = filter2 (\x -> if x > 0 then Just (x - 1) else Nothing)
 ~~~
 
-We can use parametric polymorphism to rule out this adversary and demonstrate that the correct implementation **only** takes its outputs from `Keep`:
+Although the type of `filter2` is quite suggestive to the programmer, it is still not fully faithful to our intent!
+Consider the following implementation with the same type, which has a subtle bug:
 
 ~~~ haskell
-filter :: (a -> Keep b) -> [a] -> [b]
-filter _    []       = []
-filter keep (a : as)
-    | Keep b <- keep a = b : filter keep as
-    | otherwise        =     filter keep as
+filter2' :: (a -> Maybe a) -> [a] -> [a]
+filter2' _    []         = []
+filter2' keep (a : as)
+  | Just b <- keep a     = a : filter keep as
+  | otherwise            =     filter keep as
 ~~~
 
+We can use parametric polymorphism to express our intent faithfully in the code,
+
+~~~ haskell
+filter3 :: (a -> Maybe b) -> [a] -> [b]
+filter3 _    []         = []
+filter3 keep (a : as)
+  | Just b <- keep a    = b : filter keep as
+  | otherwise           =     filter keep as
+~~~
+
+The type of `filter3` ensures that its implementation only collects outputs from the predicate, because that is the only thing in scope which can produce a value of `b`.
 Note that we did not have to change the implementation because it was already correct!
-We only needed to change the type to reflect facts about the correct implementation.
-Changing the type also made `filter` more general:
-the predicate may now transform the list at the same time as filtering it.
+We only needed to change the type to reflect our intent for the correct implementation.
+Changing the type made the implementation still more general:
+the predicate may now even transform the elements to a different type while filtering the list.
 
-`Keep` is identical to `Maybe`, so we may write instead
-
-~~~ haskell
-filter :: (a -> Maybe b) -> [a] -> [b]
-filter _    []       = []
-filter keep (a : as)
-    | Just b <- keep a = b : filter keep as
-    | otherwise        =     filter keep as
-~~~
-
-and enjoy all the convenient functions that the standard library defines for `Maybe`.
-This definition already exists as [`Data.Maybe.mapMaybe`][Data.Maybe.mapMaybe]—it is unfortunately not in the `Prelude`!
-This generalized definition can implement the original `filter` with a little help:
+`filter3` already exists as [`Data.Maybe.mapMaybe`][Data.Maybe.mapMaybe]—it is unfortunately not in the `Prelude`!
+The generalized definition can implement the original `filter` with a little help:
 
 ~~~ haskell
 keeping :: (a -> Bool) -> (a -> Maybe a)
 keeping predicate a
-    | predicate a = Just a
-    | otherwise   = Nothing
+  | predicate a = Just a
+  | otherwise   = Nothing
 
-originalFilter :: (a -> Bool) -> [a] -> [a]
-originalFilter predicate = filter (keeping predicate)
+filter' :: (a -> Bool) -> [a] -> [a]
+filter' predicate = filter3 (keeping predicate)
 ~~~
 
-The generalized `filter` encourages to build a reusable components like `keeping`.
+The generalized `filter` encourages to build a reusable components like `keeping`,
+and `keeping` also allows us to reuse all the convenient definitions `Prelude` provides for `Bool`.
 
 ## Post script: How far is too far?
 
@@ -140,17 +144,18 @@ It might be tempting to carry on generalizing.
 Instead of allowing zero or one output elements per input, we might allow any number of outputs:
 
 ~~~ haskell
-generalFilter :: (a -> [b]) -> [a] -> [b]
-generalFilter _    []       = []
-generalFilter keep (a : as) = keep a ++ filter keep as
+filter4 :: (a -> [b]) -> [a] -> [b]
+filter4 _    []       = []
+filter4 keep (a : as) = keep a ++ filter keep as
 ~~~
 
 This function is probably too general to be useful as a generalization of `filter`:
 by allowing any number of outputs, we allow so many transformations that it makes the intent unclear.
-This generalization does appear, though, as the [`Monad`][Monad] instance of lists:
+This generalization does appear, though, in the [`Monad`][Monad] instance of lists:
 
 ~~~ haskell
 flip (>>=) :: (a -> [b]) -> [a] -> [b]
+-- flip (>>=) === filter4
 ~~~
 
 In the context of `filter`, we may have gone too far, but in another context this might be exactly the abstraction we need.
