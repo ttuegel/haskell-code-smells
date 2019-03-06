@@ -65,7 +65,7 @@ filter1 keep (a : as)
   | otherwise         =     filter keep as
 ~~~
 
-This popular style does have a practical disadvantage:
+This popular style has a practical disadvantage:
 there are already many functions that work with `Bool`,
 but none will work with `Keep` unless we reimplement them ourselves.
 
