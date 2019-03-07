@@ -139,8 +139,9 @@ the predicate may now even transform the elements to a different type while filt
 
 ## Generalization, composition, and decomposition
 
-[`filter3`](#filter3) already exists as [`Data.Maybe.mapMaybe`][Data.Maybe.mapMaybe]—it is unfortunately not in the `Prelude`!
-The generalized definition can implement the original `filter` with a little help:
+[`filter3`](#filter3) is not an evocative name, and in generalization we have strayed from the original use of "filter".
+Luckily, we do not need to name the function ourselves: it already exists as [`Data.Witherable.mapMaybe`][Data.Witherable.mapMaybe].
+The original `filter` is implemented with a little help:
 
 ``` {#keeping-filter .haskell}
 keeping :: (a -> Bool) -> (a -> Maybe a)
@@ -149,7 +150,7 @@ keeping predicate a
   | otherwise   = Nothing
 
 filter'' :: (a -> Bool) -> [a] -> [a]
-filter'' predicate = filter3 (keeping predicate)
+filter'' predicate = mapMaybe (keeping predicate)
 ```
 
 The generalized `filter` encourages to build a reusable components like `keeping`,
@@ -180,5 +181,5 @@ In the context of `filter`, we may have gone too far, but in another context thi
 [Bool]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Prelude.html#t:Bool
 [Data.List.filter]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Data-List.html#v:filter
 [Prelude]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Prelude.html
-[Data.Maybe.mapMaybe]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Maybe.html#v:mapMaybe
+[Data.Witherable.mapMaybe]: http://hackage.haskell.org/package/witherable-0.3/docs/Data-Witherable.html#v:mapMaybe
 [Monad]: http://hackage.haskell.org/package/base-4.12.0.0/docs/Control-Monad.html#t:Monad
