@@ -1,7 +1,8 @@
 % Code smell: Boolean blindness
 % Thomas Tuegel
 
-# Code smell: Boolean blindness
+> At Runtime Verification, we are using Haskell to develop the next generation of formal verification tools based on the K Framework.
+> This article describes how we use algebraic data types to write expressive Haskell code.
 
 [`Bool`][Bool] represents a single bit of information:
 
