@@ -6,7 +6,7 @@
 
 [`Bool`][Bool] represents a single bit of information:
 
-~~~ {haskell .ignore}
+~~~ {.haskell .ignore}
 data Bool = False | True
 ~~~
 
@@ -18,7 +18,7 @@ Using more structure can produce interfaces that are easier to document, use, de
 
 [`Data.List.filter`][Data.List.filter] is a classic example of a function that would benefit from a richer interface type:
 
-``` {haskell .ignore}
+``` {.haskell .ignore}
 filter :: (a -> Bool) -> [a] -> [a]
 --         ^^^^^^^^^
 --         predicate: keep or discard each element
@@ -32,7 +32,7 @@ A "filter" has two uses:
 Just as there are two uses for a filter, I can never remember if `filter`'s predicate means "keep" or "discard".
 For the record, the [`Prelude`][Prelude] definition is:
 
-``` {#filter haskell .ignore}
+``` {#filter .haskell .ignore}
 filter _    []       = []
 filter keep (a : as)
   | keep a           = a : filter keep as
@@ -42,7 +42,7 @@ filter keep (a : as)
 ... I think.
 If I had the _other_ use of "filter" in mind when I wrote the function, I might have written instead,
 
-``` {#filter-prime haskell}
+``` {#filter-prime .haskell}
 filter' :: (a -> Bool) -> [a] -> [a]
 filter' _       []       = []
 filter' discard (a : as)
@@ -56,7 +56,7 @@ filter' discard (a : as)
 
 One (ahem) solution to clarify intent is to give [`filter`](#filter) a better name, one that does not have a dual identity:
 
-``` {#select haskell}
+``` {#select .haskell}
 select :: (a -> Bool) -> [a] -> [a]
 --         ^^^^^^^^^
 --         predicate: select each element
@@ -68,7 +68,7 @@ select keep (a : as)
 
 An alternative is to supply rename the type and constructors expressively,
 
-``` {#filter1 haskell}
+``` {#filter1 .haskell}
 data Keep = Discard | Keep
 
 filter1 :: (a -> Keep) -> [a] -> [a]
@@ -88,13 +88,13 @@ Including more structure in the type of `filter` can make the definition more ge
 The most important feature of `filter` is that each element of the input list corresponds to zero (`Discard`) or one (`Keep`) elements of the output.
 There is already a type which _structurally_ represents zero or one elements,
 
-``` {haskell .ignore}
+``` {.haskell .ignore}
 data Maybe a = Nothing | Just a
 ```
 
 We can use `Maybe` to express the intent that each input element yields zero or one output elements:
 
-``` {#filter2 haskell}
+``` {#filter2 .haskell}
 filter2 :: (a -> Maybe a) -> [a] -> [a]
 filter2 _    []         = []
 filter2 keep (a : as)
@@ -104,7 +104,7 @@ filter2 keep (a : as)
 
 `filter2` is a generalization of `filter` because we might transform the list as we filter it:
 
-``` {#decrementPositive haskell}
+``` {#decrementPositive .haskell}
 -- | Select only the positive elements and decrement them.
 decrementPositive :: [Integer] -> [Integer]
 decrementPositive = filter2 (\x -> if x > 0 then Just (x - 1) else Nothing)
@@ -113,7 +113,7 @@ decrementPositive = filter2 (\x -> if x > 0 then Just (x - 1) else Nothing)
 Although the type of `filter2` is quite suggestive to the programmer, it is still not fully faithful to our intent!
 Consider the following implementation with the same type, which has a subtle bug:
 
-``` {#filter2-prime haskell}
+``` {#filter2-prime .haskell}
 filter2' :: (a -> Maybe a) -> [a] -> [a]
 filter2' _    []         = []
 filter2' keep (a : as)
@@ -123,7 +123,7 @@ filter2' keep (a : as)
 
 We can use parametric polymorphism to express our intent faithfully in the code,
 
-``` {#filter3 haskell}
+``` {#filter3 .haskell}
 filter3 :: (a -> Maybe b) -> [a] -> [b]
 filter3 _    []         = []
 filter3 keep (a : as)
@@ -143,7 +143,7 @@ the predicate may now even transform the elements to a different type while filt
 Luckily, we do not need to name the function ourselves: it already exists as [`Data.Witherable.mapMaybe`][Data.Witherable.mapMaybe].
 The original `filter` is implemented with a little help:
 
-``` {#keeping-filter haskell}
+``` {#keeping-filter .haskell}
 keeping :: (a -> Bool) -> (a -> Maybe a)
 keeping predicate a
   | predicate a = Just a
@@ -161,7 +161,7 @@ and `keeping` also allows us to reuse all the convenient definitions `Prelude` p
 It might be tempting to carry on generalizing.
 Instead of allowing zero or one output elements per input, we might allow any number of outputs:
 
-``` {#filter4 haskell}
+``` {#filter4 .haskell}
 filter4 :: (a -> [b]) -> [a] -> [b]
 filter4 _    []       = []
 filter4 keep (a : as) = keep a ++ filter4 keep as
@@ -171,7 +171,7 @@ This function is probably too general to be useful as a generalization of `filte
 by allowing any number of outputs, we allow so many transformations that it makes the intent unclear.
 This generalization does appear, though, in the [`Monad`][Monad] instance of lists:
 
-``` {#flip-bind haskell .ignore}
+``` {#flip-bind .haskell .ignore}
 flip (>>=) :: (a -> [b]) -> [a] -> [b]
 -- flip (>>=) === filter4
 ```
