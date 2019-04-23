@@ -1,7 +1,7 @@
 % Lazy evaluation by example
 % Thomas Tuegel
 
-...
+**TODO**
 
 ## Example
 
@@ -54,7 +54,7 @@ ghci> strictlyNoneOf undefined
 
 ## Explanation
 
-Haskell uses a call-by-name evaluation strategy so that values are computed when a pattern could match a constructor.
+Haskell uses a call-by-need evaluation strategy so that values are computed when a pattern could match a constructor.
 `noneOf` never evaluates its argument because it never tries to match a constructor pattern.
 `strictlyNoneOf` is stricter because it matches on the constructor `One`; trying to match a constructor pattern triggers evaluation.
 
@@ -69,6 +69,9 @@ None
 
 Evaluation is triggered by matching on a constructor pattern.
 The _argument_ of `One` is never evaluated because `strictlyNoneOf` never tries to match it.
+
+You could stop reading right here and rest assured that you understand lazy evaluation.
+I, however, would be remiss if I did not exhibit some variations you will see from time to time.
 
 ## Weak head normal form
 
@@ -88,13 +91,14 @@ ghci> strictlyAny undefined
 simply using constructor pattern matching?
 
 No! The type of the argument is variable, so we do not know which constructors to match.
-It is impossible to write this function using plain pattern matching, so the compiler provides `Prelude.seq`:
+It is impossible to write this function using plain pattern matching,
+so the compiler provides `Prelude.seq`:
 
 ``` {#seq .haskell .ignore}
 seq :: a -> b -> b
 ```
 
-`Prelude.seq` evaluates its first argument before returning its second argument;
+`Prelude.seq` evaluates its first argument and returns its second argument;
 we can use it to implement `strictlyAny`:
 
 ``` {.haskell}
@@ -116,6 +120,11 @@ so that `strictlyAny` behaves much the same as `strictlyNoneOf`:
 ghci> strictlyAny (One undefined)
 None
 ```
+
+`Prelude.seq` is sometimes described as "magical" in the sense that we could not write it ourselves,
+but it can only be provided by the compiler.
+Nevertheless, it is magic that we control;
+we should take care not to think of it as "mystical"!
 
 ## `newtype` versus `data`
 
@@ -181,3 +190,11 @@ Just *** Exception: Prelude.undefined
 The last line is not a typo!
 `Just` is a lazy constructor, so that the `x` matched by `~(One x)` is not demanded until GHCi prints the result.
 The interpreter proceeds as far as it can—even `show`-ing the constructor name—before `x` is finally demanded.
+
+## Sharing
+
+**TODO**
+
+## Further reading
+
+You can read more at [What I Wish I Knew When Learning Haskell](http://dev.stephendiehl.com/hask/#laziness).
